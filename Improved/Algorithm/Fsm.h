@@ -4,6 +4,7 @@
 #include "sys.h"
 #include <stdbool.h>
 #include "InfraredTracking.h"
+#include "Task_basic.h"
 
 // ¶¨Òå×´Ì¬Ã¶¾Ù
 typedef enum {

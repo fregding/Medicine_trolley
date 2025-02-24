@@ -9,6 +9,7 @@
 #include "InfraredTracking.h"
 #include "encoder.h"
 #include "Motor.h"
+#include "MotionControl.h"
 
 #define THRESHOLD 2      // 允许的误差阈值
 
@@ -30,8 +31,16 @@
 //	11.一旦Tracking_Flag达到-2，Car1_state变为IDLE。
 
 extern int8_t Quarter_turn_Flag;
+extern int8_t Full_turn_Flag;
+extern int8_t Car_stop_Flag;
+
+bool isStraight(uint8_t *data);
+bool isCrossOrT(uint8_t *data);
 
 bool compare_arrays_range(uint8_t* arr1, uint8_t* arr2, uint8_t start, uint8_t len);
 
+void Fsm_ActionS(void);
+
+void PathTracking(uint8_t* data_address);
 
 #endif
