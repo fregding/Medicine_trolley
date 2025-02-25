@@ -3,6 +3,7 @@
 
 #include "sys.h"
 #include "PID.h"
+#include "InfraredTracking.h"
 
 #define AIN1 GPIO_Pin_7
 #define AIN2 GPIO_Pin_8
@@ -11,6 +12,9 @@
 #define STBY GPIO_Pin_11
 
 #define basePWM 2000
+#define MotorPWM_maxValue 5000
+#define GoStraight_Speed 20
+#define CircleTurn_Speed 5
 
 extern float Real_leftPWM;
 extern float Real_rightPWM;
@@ -23,6 +27,8 @@ void set_PWM_output(TIM_TypeDef *TIMx, uint8_t channel, int16_t pwmValue);
 
 void tb6612_out(int pwm_l, int pwm_r);
 
-void updateMotorControl(float targetSpeed,float currentSpeed);
+int constrain(int x, int min, int max);
+
+void updateMotorControl(float targetSpeed, float currentSpeed,int Senser_error);
 
 #endif

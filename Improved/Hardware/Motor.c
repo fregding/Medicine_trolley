@@ -122,6 +122,23 @@ void set_PWM_output(TIM_TypeDef *TIMx, uint8_t channel, int16_t pwmValue)
     }
 }
 
+int constrain(int x, int min, int max) 
+{
+    if (x < min) 
+		{
+        return min;
+    }
+    else if (x > max) 
+		{
+        return max;
+    }
+    else 
+		{
+        return x;
+    }
+}
+
+
 // PWM 输出
 void tb6612_out(int pwm_l, int pwm_r) 
 {
@@ -149,24 +166,34 @@ void tb6612_out(int pwm_l, int pwm_r)
 		GPIO_SetBits(GPIOE, BIN2);
 		GPIO_ResetBits(GPIOE,BIN1);				
 	}
+	
+    // 限制 PWM 在合理范围内（假设 PWM 最大值为 MotorPWM_maxValue)
+    pwm_l = constrain(pwm_l, 0, MotorPWM_maxValue);
+    pwm_r = constrain(pwm_r, 0, MotorPWM_maxValue);	
      // **映射到 PWM 输出**
     set_PWM_output(TIM8, 1, pwm_l);   // 左轮 PWM 输出
     set_PWM_output(TIM8, 2, pwm_r);  // 右轮 PWM 输出  
 }
 
 
-void updateMotorControl(float targetSpeed,float currentSpeed) //wheel_speed_left
+void updateMotorControl(float targetSpeed, float currentSpeed,int Senser_error) 
 {
     // 计算 PID 速度控制量
     float incrementalOutput = Incremental_Control(&motorPWM_pid, currentSpeed, targetSpeed);
     
-    // 计算直行修正
-    float straightCorrection = computeStraightCorrection();
+    // 计算传感器误差
+    //int Senser_error = calculate_error(sensor_data);
+    
+    // 计算直行修正（基于误差）
+    float straightCorrection = Senser_error * 0.001;  // Kp 是控制误差的比例系数
 
     // 计算左/右电机 PWM 输出
-    Real_leftPWM = basePWM + incrementalOutput - straightCorrection;
-    Real_rightPWM = basePWM + incrementalOutput + straightCorrection;
+    int pwm_l = basePWM + incrementalOutput - straightCorrection;
+    int pwm_r = basePWM + incrementalOutput + straightCorrection;
+
+	  // 传递修正后的 PWM 值
+    Real_leftPWM = pwm_l;
+    Real_rightPWM = pwm_r;
 
 }
-
 
