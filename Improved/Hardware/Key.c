@@ -13,13 +13,14 @@ static uint8_t timer;  // 扫描间隔
 
 void Key_Init(void)
 {
-    /* 开启 GPIOC 时钟 */
+    /* 开启 GPIOC 时钟（或者根据实际情况选择其他GPIO端口时钟） */
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);  
 
     /* GPIO 初始化 */
     GPIO_InitTypeDef GPIO_InitStructure;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;  // 配置上拉电阻
 
     for (uint8_t i = 0; i < KEY_NUMBER; i++)
     {
@@ -27,6 +28,7 @@ void Key_Init(void)
         GPIO_Init(GPIO_Key_PORT, &GPIO_InitStructure);  
     }
 }
+
 
 void key_handler(void)
 {
@@ -178,7 +180,7 @@ void key_action(void)
             case 0:
                 Active_Flag = 1;
                 refresh_Flag = 1;
-						    LED1_ON;
+						    LED1_OFF;
                 break;
             }
         }
@@ -189,9 +191,11 @@ void key_action(void)
             {
             case 0:
                 Turn_to_below_item();
+								LED1_OFF;
                 break;
             case 1:
                 item_data_decrease();
+								LED1_OFF;
                 break;
             }
         }
@@ -200,7 +204,7 @@ void key_action(void)
 
 void key_list_init(void)
 {
-    timer = 10;
+    timer = 3;
 
     for (uint8_t i = 0; i < KEY_NUMBER; i++)
     {

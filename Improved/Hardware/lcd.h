@@ -49,7 +49,7 @@ void LCD_ShowPicture(u16 x,u16 y,u16 length,u16 width,const u8 pic[]);//œ‘ æÕº∆¨
 #define Textsize  16  // 16: 8x16  32: 16x32
 #define X_set  8
 #define Y_set  16
-#define Bits 6
+#define Bits 4
 
 void Menu_show_String(u16 x,u16 y,char *p,bool reverse);
 void Menu_show_Float(u16 x,u16 y,float num,bool reverse);

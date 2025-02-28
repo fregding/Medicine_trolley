@@ -4,8 +4,7 @@
 uint8_t cam_Num = 0;
 
 int8_t Quarter_turn_Flag = 0;
-int8_t Full_turn_Flag = 0;
-int8_t Car_stop_Flag = 0;
+
 // 预定义标准模式
 //                        |   0-3 |  4-7  |  8-11 | 12-15 |
 uint8_t Straight_eg0[16] = {0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0};
@@ -27,7 +26,6 @@ void Recognised1(uint8_t num)
 		if(num>0&&num<9)
 		{
 			delay_ms(200);//待数字稳定
-			// 识别到同一个数字20次再触发
 			Car1_Event = ROOM_SCANNED;
 		}
 	}
@@ -65,26 +63,16 @@ void Departure1(void)
 // 识别到病房数字,到点后加停车 	Car1_Event = ARRIVED
 void Recognised2(uint8_t num)
 {
-	if(Car1_state==NAVIGATE_NEAR && Tracking_Flag == 1)
+	if(Car1_state==NAVIGATE_NEAR||Car1_state==NAVIGATE_MID||Car1_state==NAVIGATE_FAR)
 	{
-			if(num==1||num==2)
+		if(Tracking_Flag == 4)
+		{
+			if(num>0&&num<9)
 			{
+				delay_ms(200);//待数字稳定
 				Car1_Event = ARRIVED;
 			}
-	}
-	else if(Car1_state==NAVIGATE_MID && Tracking_Flag == 2)
-	{
-			if(num==3||num==4)
-			{
-				Car1_Event = ARRIVED;
-			}		
-	}
-	else if(Car1_state==NAVIGATE_FAR && Tracking_Flag == 4)
-	{
-			if(num>3&&num<9)
-			{
-				Car1_Event = ARRIVED;
-			}		
+  	}
 	}
 }
 
@@ -100,19 +88,14 @@ void Departure2(void)
 	}
 }
 
-// 停车			Car1_Event = HOME||ARRIVED
+// 回到出发点，停车			Car1_Event = HOME
 void Ready_to_Stop(void)
 {
-	if(Car1_state==RETURN || Car1_state == ARRIVED)
+	if(Car1_state==RETURN)
 	{
-		if(Tracking_Flag == -2 && isCrossOrT(Infrared_filter_Get())==1)
+		if(Tracking_Flag == -2)
 		{
 			Car1_Event = HOME;
-			Car_stop_Flag = 1;
-		}
-		else if(isCrossOrT(Infrared_filter_Get())==1)
-		{
-			Car_stop_Flag = 1;
 		}
 	}		
 }
@@ -195,6 +178,7 @@ int Tracking_reg(uint8_t* data_address)
 	
 	if (isStraight(data_address)) 
 	{
+		Tracking_Flag = 0;
 		Quarter_turn_Flag = 0;
 		error = calculate_error(data_address);
 	} 
@@ -242,26 +226,4 @@ int Tracking_reg(uint8_t* data_address)
 		Quarter_turn_Flag = 0;
 	}
 	return error;
-}
-
-
-// 2. 路径跟踪和误差计算函数
-void PathTracking(uint8_t* data_address) 
-{
-    int error = Tracking_reg(data_address);  
-    
-    if (Quarter_turn_Flag == 1) 
-		{
-				updateMotorControl(CircleTurn_Speed,wheel_speed_left,0);
-        // 执行转向动作，转向的操作需要依据机器人的硬件和驱动来实现
-        updateMotionControl(90,&Real_leftPWM,&Real_rightPWM);
-				tb6612_out(Real_leftPWM,Real_rightPWM);
-    } 
-		else 
-		{
-        updateMotorControl(GoStraight_Speed,wheel_speed_left,error);
-				// 按照计算的误差执行纠正动作
-				tb6612_out(Real_leftPWM,Real_rightPWM);
-				
-    }
 }

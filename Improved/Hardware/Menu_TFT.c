@@ -13,7 +13,7 @@
 uint8_t Current_keyState = 0;  // 0 -> 浮空 1 -> 单击 2 -> 双击 3 -> 长按
 uint8_t Active_Flag = 0;
 uint8_t Cursor_position = 2;
-uint8_t refresh_Flag = 0;
+uint8_t refresh_Flag = 1;
 uint8_t Page_number = 0;  // 当前页面编号，0 表示第一页
 
 
@@ -62,6 +62,8 @@ void Pages_init(void)
     Pages[2].itemData = Page3_Items.itemData;
     
     // 页面的其他属性初始化
+		Cursor_position = 2;
+		refresh_Flag = 1;
     Menu_show_current_page();
 }
 

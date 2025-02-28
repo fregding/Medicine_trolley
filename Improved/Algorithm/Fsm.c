@@ -18,9 +18,6 @@ void handleEvent(Event_t event)
     switch (Car1_state) 
     {
         case IDLE:
-					
-						// 在空闲状态下，准备开始新的任务
-						Fsm_ActionS();
             if (event == START) 
 						{
                 Car1_state = SCAN;
@@ -28,19 +25,13 @@ void handleEvent(Event_t event)
             break;
 
         case SCAN:
-					
-						// 在扫描状态下，调用 Recognised1 来识别卡片
-            Fsm_ActionS();
-						if (event == ROOM_SCANNED) 
+            if (event == ROOM_SCANNED) 
 						{
                 Car1_state = IDENTIFY_BED;
             }
             break;
 
         case IDENTIFY_BED:
-					
-						// 在识别病床状态下，调用 Sort_and_Start 来准备送药
-						Fsm_ActionS();
             // 识别病床时，根据病房编号来设置相应的事件
             if (event == BED_NEAR || event == BED_MID || event == BED_FAR) 
 						{
@@ -50,9 +41,6 @@ void handleEvent(Event_t event)
             break;
 
         case LOADING:
-					
-						// 在装载药物状态下，调用 Departure1 来确认药物是否装载好
-						Fsm_ActionS();
             if (event == LOADED) 
 						{
                 if (bedIdentified) 
@@ -77,10 +65,6 @@ void handleEvent(Event_t event)
         case NAVIGATE_NEAR:
         case NAVIGATE_MID:
         case NAVIGATE_FAR:
-					
-					  // 在导航状态下，调用路径跟踪函数来进行路径跟踪
-            PathTracking(Infrared_filter_Get());
-						Fsm_ActionS();
             if (event == ARRIVED) 
 						{
                 Car1_state = DELIVER;
@@ -92,9 +76,6 @@ void handleEvent(Event_t event)
             break;
 
         case DELIVER:
-					
-					  // 在送药状态下，调用 Departure2 来检查药物是否已取走
-						Fsm_ActionS();
             if (event == DELIVERED) 
 						{
                 Car1_state = RETURN;
@@ -102,7 +83,6 @@ void handleEvent(Event_t event)
             break;
 
         case RETURN:
-						Fsm_ActionS();
             if (event == HOME) 
 						{
                 Car1_state = IDLE;

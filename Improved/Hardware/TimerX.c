@@ -1,76 +1,151 @@
-#include "TimerX.h" 
+/* 头文件顺序调整 */
 #include "stm32f4xx.h"
+#include "TimerX.h"
 #include "encoder.h"
 
-//使用举例：
-//SysTick_Init(1);   // SysTick 每 1ms 触发
-//TIM2_Init(10);     // TIM2 每 10ms 触发
-
-volatile uint32_t sysTickCounter = 0;  // 计数变量
-//使用 SysTick_Handler() 处理周期任务，如 定时任务调度。
-//可用 millis() 记录系统时间，方便测量运行时间。
+//-----------------------------------------------------------------------------
+// SysTick 定时器模块
+//-----------------------------------------------------------------------------
+volatile uint32_t sysTickCounter = 0;
 
 void SysTick_Init(uint32_t ms) 
 {
-    // 计算加载值，假设时钟频率为 168MHz
+    /* 确保SystemCoreClock已正确初始化 */
+    if(SystemCoreClock == 0) 
+		{
+        SystemCoreClockUpdate();
+    }
+    
     uint32_t load = (SystemCoreClock / 1000) * ms - 1;
     
-    SysTick->LOAD  = load;  // 设置重装载值
-    SysTick->VAL   = 0;     // 清除当前计数
-    SysTick->CTRL  = SysTick_CTRL_CLKSOURCE_Msk | // 使用核心时钟
-                     SysTick_CTRL_TICKINT_Msk   | // 开启中断
-                     SysTick_CTRL_ENABLE_Msk;    // 使能 SysTick
+    /* 参数有效性检查 */
+    if(load > 0xFFFFFF) 
+		{
+        while(1); // 错误处理
+    }
+    
+    SysTick->LOAD  = load;
+    SysTick->VAL   = 0;
+    SysTick->CTRL  = SysTick_CTRL_CLKSOURCE_Msk |
+                     SysTick_CTRL_TICKINT_Msk   |
+                     SysTick_CTRL_ENABLE_Msk;
 }
 
-// SysTick 中断处理函数（每 ms 进入一次）
-void SysTick_Handler(void) {
-    sysTickCounter++;  // 计数自增
+void SysTick_Handler(void) 
+{
+    sysTickCounter++;
 }
 
-// 读取时间戳
-uint32_t millis(void) {
+uint32_t millis(void) 
+{
     return sysTickCounter;
 }
 
-
-
-#include "stm32f4xx.h"
-
-void TIM7_Init(uint16_t ms) 
+//-----------------------------------------------------------------------------
+// TIM7 定时器模块（10ms周期）
+//-----------------------------------------------------------------------------
+void TIM7_Init(uint16_t time_ms) 
 {
-    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM7, ENABLE);  // 使能 TIM7 时钟
-
-    TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
-    TIM_TimeBaseStructure.TIM_Period = (ms * 1000) - 1;  // 计算定时周期
-    TIM_TimeBaseStructure.TIM_Prescaler = 84 - 1;  // 1MHz 计数时钟 (168MHz / 2 / 84)
-    TIM_TimeBaseStructure.TIM_ClockDivision = 0;
-    TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
-    TIM_TimeBaseInit(TIM7, &TIM_TimeBaseStructure);
-
-    TIM_ITConfig(TIM7, TIM_IT_Update, ENABLE);  // 使能更新中断
-    TIM_Cmd(TIM7, ENABLE);  // 使能 TIM7
-
+    TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
     NVIC_InitTypeDef NVIC_InitStructure;
+    
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM7, ENABLE);
+
+    /* 动态获取定时器时钟 */
+    RCC_ClocksTypeDef clocks;
+    RCC_GetClocksFreq(&clocks);
+    uint32_t timer_clock = clocks.PCLK1_Frequency;
+    if(clocks.HCLK_Frequency / clocks.PCLK1_Frequency > 1) 
+		{
+        timer_clock *= 2;
+    }
+
+    const uint32_t desired_freq = 10000; // 10 kHz
+    uint32_t psc = (timer_clock / desired_freq) - 1;
+    uint32_t arr = (time_ms * desired_freq) / 1000 - 1;
+
+    /* 参数边界检查 */
+    if(psc > 0xFFFF || arr > 0xFFFF) 
+		{
+        while(1); // 错误处理
+    }
+
+    TIM_TimeBaseInitStructure.TIM_Period = arr;
+    TIM_TimeBaseInitStructure.TIM_Prescaler = psc;
+    TIM_TimeBaseInitStructure.TIM_CounterMode = TIM_CounterMode_Up;
+    TIM_TimeBaseInitStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+    TIM_TimeBaseInit(TIM7, &TIM_TimeBaseInitStructure);  // 修正为TIM7
+
+    TIM_ITConfig(TIM7, TIM_IT_Update, ENABLE);
+    TIM_Cmd(TIM7, ENABLE);
+
     NVIC_InitStructure.NVIC_IRQChannel = TIM7_IRQn;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x01;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x02;
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStructure);
 }
 
-// TIM7 中断处理函数（每 10ms 触发）
 void TIM7_IRQHandler(void) 
 {
-    if (TIM_GetITStatus(TIM7, TIM_IT_Update) != RESET) {
+    if(TIM_GetITStatus(TIM7, TIM_IT_Update) != RESET) 
+		{
         TIM_ClearITPendingBit(TIM7, TIM_IT_Update);
-        // 在此执行 10ms 任务
-			
-				 encoder_left = Read_Encoder(TIM3);
-				 encoder_right = Read_Encoder(TIM4);
-			
-				 computeSpeed(encoder_left,encoder_right);   // 计算轮速（带低通滤波）
-
-			
+        
+        /* 编码器读数建议增加临界区保护 */
+        __disable_irq();
+//        encoder_left = Read_Encoder(TIM3);
+//        encoder_right = Read_Encoder(TIM4);
+        __enable_irq();
+        
+        computeSpeed(encoder_left, encoder_right);
     }
 }
 
+//-----------------------------------------------------------------------------
+// TIM3 定时器模块（按键处理）
+//-----------------------------------------------------------------------------
+void TIM3_Init(uint16_t time_ms)
+{
+    TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
+    NVIC_InitTypeDef NVIC_InitStructure;
+    
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
+
+    /* 动态获取定时器时钟 */
+    RCC_ClocksTypeDef clocks;
+    RCC_GetClocksFreq(&clocks);
+    uint32_t timer_clock = clocks.PCLK1_Frequency;
+    if(clocks.HCLK_Frequency / clocks.PCLK1_Frequency > 1) 
+		{
+        timer_clock *= 2;
+    }
+
+    const uint32_t desired_freq = 10000; // 10 kHz
+    uint32_t psc = (timer_clock / desired_freq) - 1;
+    uint32_t arr = (time_ms * desired_freq) / 1000 - 1;
+
+    TIM_TimeBaseInitStructure.TIM_Period = arr;
+    TIM_TimeBaseInitStructure.TIM_Prescaler = psc;
+    TIM_TimeBaseInitStructure.TIM_CounterMode = TIM_CounterMode_Up;
+    TIM_TimeBaseInitStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+    TIM_TimeBaseInit(TIM3, &TIM_TimeBaseInitStructure);
+
+    TIM_ITConfig(TIM3, TIM_IT_Update, ENABLE);
+    TIM_Cmd(TIM3, ENABLE);
+
+    NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x01;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x03;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVIC_InitStructure);
+}
+
+void TIM3_IRQHandler(void)
+{
+    if(TIM_GetITStatus(TIM3, TIM_IT_Update) != RESET) 
+		{
+        key_handler();
+        TIM_ClearITPendingBit(TIM3, TIM_IT_Update);  // 修正清除位置
+    }
+}

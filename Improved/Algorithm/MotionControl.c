@@ -1,5 +1,9 @@
 #include "Motioncontrol.h" 
-
+#include "inv_mpu.h"
+#include "inv_mpu_dmp_motion_driver.h"
+#include <stddef.h>
+#include "encoder.h"
+#include "TimerX.h"
 
 //	高精度转向：陀螺仪 PID + 电子罗盘IMU 
 //	使用 IMU 进行航向角补偿：
@@ -48,29 +52,23 @@ float getYawAngle(void)
 float yaw_error_integral = 0;
 float last_yaw_error = 0;
 
-//  角度控制加上直线行驶的输出
-// 优化后的运动控制函数
-void updateMotionControl(float targetYaw, float *current_leftPWM, float *current_rightPWM)
+//  加上直线行驶的输出
+void updateMotionControl(float targetYaw,float *current_leftPWM, float *current_rightPWM)
 {
-    // 获取当前航向角（假设该函数已经获取到实际的 yaw 值）
     float yaw = getYawAngle();
-    
-    // 计算 yaw 误差，目标航向 - 当前航向
     float yaw_error = targetYaw - yaw;
 
-    // 计算 PID 控制输出
-    yaw_error_integral += yaw_error;  // 积分
-    float yaw_derivative = yaw_error - last_yaw_error;  // 微分
-    last_yaw_error = yaw_error;  // 更新上次误差
+    yaw_error_integral += yaw_error;
+    float yaw_derivative = yaw_error - last_yaw_error;
+    last_yaw_error = yaw_error;
 
-    // PID 控制器输出
     float correction = KP_mpu * yaw_error + KI_mpu * yaw_error_integral + KD_mpu * yaw_derivative;
 
-    // 计算左右电机 PWM 修正（通过航向误差来调整转向）
     *current_leftPWM -= correction;
     *current_rightPWM += correction;
 
-    // 限制 PWM 在合理范围内，防止过度调整导致不稳定
-//    *current_leftPWM = constrain(*current_leftPWM, 0, MotorPWM_maxValue);
-//    *current_rightPWM = constrain(*current_rightPWM, 0, MotorPWM_maxValue);
+    if (*current_leftPWM > 255) *current_leftPWM = 255;
+    if (*current_rightPWM > 255) *current_rightPWM = 255;
+    if (*current_leftPWM < 0) *current_leftPWM = 0;
+    if (*current_rightPWM < 0) *current_rightPWM = 0;
 }

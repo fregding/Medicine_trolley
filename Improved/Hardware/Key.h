@@ -4,9 +4,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-void Key_Init(void);
-uint8_t Key_GetNum(void);
-
 #define KEY_NUMBER 2
 #define PRESS_THRESHOLD 10     
 #define HOLD_THRESHOLD 300     
@@ -46,7 +43,7 @@ typedef struct
 
 uint8_t Key_GetNum(void);
 void key_list_init(void);
-void key_handler(void);
+void key_handler(void);//每次定时器中断调用一次按键处理
 void key_action(void);
 
 #endif

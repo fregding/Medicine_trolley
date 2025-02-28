@@ -11,42 +11,39 @@
 char mystr[20];
 msg_k210 k210_msg;//收到k210信息结构体
 
-  
 int main(void)
 { 
-	/*SYS INIT		NVIC_INIT	SYS--168M	TIM--84M*/	
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);//设置系统中断优先级分组2
-	delay_init(168);  //初始化延时函数
-	LED_Init();
-	LCD_Init();//LCD初始化
-	LCD_Fill(0,0,LCD_W,LCD_H,WHITE);
-	
-	RCC_ClocksTypeDef get_rcc_clock;    //获取系统时钟状态
-	RCC_GetClocksFreq(&get_rcc_clock);	
+    //系统级初始化
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);  // 中断优先级分组
+    SystemCoreClockUpdate();                        // 关键点，更新时钟变量
+    
+    //硬件外设初始化
+    delay_init(168);    // 注意：delay_init已占用SysTick，不可再调用SysTick_Init()
+    LED_Init();
+    LCD_Init();
+    LCD_Fill(0,0,LCD_W,LCD_H,WHITE);
 
-//	delay_ms(200);
-//	sprintf(mystr,"%d",get_rcc_clock.SYSCLK_Frequency);
-//	LCD_ShowString(10,0,mystr,BLACK,WHITE,16,0);
-	
-	Menu_page_init();
-	Menu_show_current_page();
-	
-	delay_ms(500);//防止接了匿名数传卡死程序
-	
-	key_list_init();					//初始化按键
+    //定时器初始化
 
-//	ENCODER_1_INIT();
-//  ENCODER_2_INIT();
-//	
-//	
-//	SysTick_Init(10); //10ms 
-   EXTIX_Init();
+    TIM3_Init(20);     // 20ms按键扫描（优先级1.3）
+    TIM7_Init(10);     // 10ms编码器采样（优先级1.2）
 
- 	while(1)
-	{
-		Menu_refresh();
-	  delay_ms(100);
-	} 	
+    //编码器硬件初始化
+//    ENCODER_1_INIT();  // 初始化TIM3编码器接口
+//    ENCODER_2_INIT();  // 初始化TIM4编码器接口
+
+
+    Menu_page_init();
+    Menu_show_current_page();
+    key_list_init();   // 初始化按键队列
+
+
+    delay_ms(500);     // 防止外设初始化不稳定
+
+
+    while(1)
+    {
+        Menu_refresh();
+        delay_ms(100); // 主循环周期建议与定时器周期匹配
+    }
 }
-
-

@@ -17,8 +17,7 @@ extern float wheel_speed_left, wheel_speed_right; // ÂÖËÙ (m/s)
 
 void ENCODER_1_INIT(void);
 void ENCODER_2_INIT(void);
-void ENCODER_3_INIT(void);
-void ENCODER_4_INIT(void);		
+	
 
 int16_t Read_Encoder(TIM_TypeDef *TIMx) ;
 void computeSpeed(int16_t LeftCNT,int16_t RightCNT);
