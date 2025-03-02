@@ -1,7 +1,5 @@
 #include "Menu_TFT.h"
-#include "lcd_init.h"
-#include "lcd.h"
-#include "string.h"
+
 
 // 四个按钮 8个动作
 // key1 short -> Turn to pre page        long -> Turn to next page
@@ -19,7 +17,7 @@ uint8_t Page_number = 0;  // 当前页面编号，0 表示第一页
 
 static float num1 = 1.0, num2 = 0.0, num3 = 0.0;
 static float angle = 30;
-float* adress = &num1;
+static float* adress = &num1;
 static float STEP = 10;
 float BIN = 0;
 
@@ -27,8 +25,8 @@ float BIN = 0;
 MenuPage Pages[3];  // 定义三个页面
 
 page_items Page1_Items = {
-    {"a", "P", "I", "D", "Angle"},  // 项目名称
-    {&num1, &num1, &num1, &num2, &num3}  // 项目地址
+    {"En_L", "En_R", "P", "I", "D"},  // 项目名称
+    {&encoder_left, &encoder_right, &num1, &num2, &num3}  // 项目地址
 };
 
 page_items Page2_Items = {
@@ -45,7 +43,7 @@ page_items Page3_Items = {
 // 每页的初始化函数
 void Pages_init(void)
 {
-    // 初始化页面 1 和 2
+    // 初始化页面 123
     Pages[0].Current_Step = &STEP;
     sprintf(Pages[0].TitleName, "Page 1");
     Pages[0].itemNames = &Page1_Items.ItemName;
@@ -124,14 +122,16 @@ void Turn_to_next_page(void)
 {
     // 循环翻页，从第一页到最后一页，再回到第一页
     Page_number = (Page_number + 1) % 3;
-    refresh_Flag = 1;
+		Active_Flag = 0;
+		refresh_Flag = 1;
 }
 
 void Turn_to_previous_page(void)
 {
     // 循环翻页，从第一页回到最后一页
     Page_number = (Page_number + 2) % 3;
-    refresh_Flag = 1;
+		Active_Flag = 0;
+		refresh_Flag = 1;
 }
 
 void Turn_to_above_item(void)

@@ -4,6 +4,10 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include "lcd_init.h"
+#include "lcd.h"
+#include "string.h"
+#include "encoder.h"
 
 #define Title_offset 1
 #define Data_offset 8

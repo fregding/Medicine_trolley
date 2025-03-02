@@ -92,13 +92,11 @@ void TIM7_IRQHandler(void)
 		{
         TIM_ClearITPendingBit(TIM7, TIM_IT_Update);
         
-        /* 编码器读数建议增加临界区保护 */
-        __disable_irq();
-//        encoder_left = Read_Encoder(TIM3);
-//        encoder_right = Read_Encoder(TIM4);
-        __enable_irq();
+        encoder_left = (float)Read_Encoder(TIM3);
+        encoder_right = (float)Read_Encoder(TIM4);
         
         computeSpeed(encoder_left, encoder_right);
+
     }
 }
 

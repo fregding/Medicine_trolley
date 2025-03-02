@@ -182,6 +182,9 @@ void key_action(void)
                 refresh_Flag = 1;
 						    LED1_OFF;
                 break;
+						case 1:
+								Turn_to_next_page();
+								break;
             }
         }
 
