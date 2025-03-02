@@ -25,7 +25,7 @@ int main(void)
 
     //定时器初始化
 
-    TIM3_Init(20);     // 20ms按键扫描（优先级1.3）
+    TIM6_Init(20);     // 20ms按键扫描（优先级1.3）
     TIM7_Init(10);     // 10ms编码器采样（优先级1.2）
 
     //编码器硬件初始化
@@ -36,6 +36,11 @@ int main(void)
     Menu_page_init();
     Menu_show_current_page();
     key_list_init();   // 初始化按键队列
+		
+		
+		//电机初始化
+//		motor_init();
+//		tb6612_out(1000,1000);
 
 
     delay_ms(500);     // 防止外设初始化不稳定

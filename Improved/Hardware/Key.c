@@ -13,8 +13,8 @@ static uint8_t timer;  // 扫描间隔
 
 void Key_Init(void)
 {
-    /* 开启 GPIOC 时钟（或者根据实际情况选择其他GPIO端口时钟） */
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);  
+
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);  
 
     /* GPIO 初始化 */
     GPIO_InitTypeDef GPIO_InitStructure;
@@ -35,7 +35,7 @@ void key_handler(void)
     for (uint8_t i = 0; i < KEY_NUMBER; i++)
     {
         // 更新按键状态（低电平按下）
-        key_list[i].value = !GPIO_ReadInputDataBit(GPIOC, key_pins[i]);
+        key_list[i].value = !GPIO_ReadInputDataBit(GPIO_Key_PORT, key_pins[i]);
 
         // 记录上次状态
         key_list[i].last_value = key_list[i].value;
@@ -168,7 +168,7 @@ void key_action(void)
                 break;
             case 1:
 							item_data_increase();
-						LED1_OFF;
+						LED1_ON;
                 break;
             }
         }
@@ -195,7 +195,7 @@ void key_action(void)
                 break;
             case 1:
                 item_data_decrease();
-								LED1_OFF;
+								LED1_ON;
                 break;
             }
         }

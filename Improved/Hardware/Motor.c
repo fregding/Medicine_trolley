@@ -10,14 +10,7 @@ float Real_rightPWM = 0;
 // 通道 1：GPIOB_PIN_13（TIM8_CH1）
 // 通道 2：GPIOB_PIN_14（TIM8_CH2）
 
-// 电机初始化  TIM8
-#define AIN1 GPIO_Pin_7
-#define AIN2 GPIO_Pin_8
-#define BIN1 GPIO_Pin_9
-#define BIN2 GPIO_Pin_10
-#define STBY GPIO_Pin_11
 
-// 电机初始化 TIM8（PWM频率10kHz，死区时间200ns）
 void motor_init(void) 
 {
     GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -26,33 +19,40 @@ void motor_init(void)
     TIM_BDTRInitTypeDef TIM_BDTRInitStruct = {0};
 
     // 1. 配置方向控制引脚（PE7~PE11）
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);
-    GPIO_InitStruct.GPIO_Pin = GPIO_Pin_7 | GPIO_Pin_8 | GPIO_Pin_9 | GPIO_Pin_10 | GPIO_Pin_11;
+    RCC_AHB1PeriphClockCmd(Tb6612_RCC, ENABLE);
+    GPIO_InitStruct.GPIO_Pin = AIN1 | AIN2 | BIN1 | BIN2 | STBY;
     GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT;
     GPIO_InitStruct.GPIO_Speed = GPIO_Speed_100MHz;
     GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;  // 取消下拉
-    GPIO_Init(GPIOE, &GPIO_InitStruct);
+    GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    GPIO_Init(Tb6612_PORT, &GPIO_InitStruct);
 
     // 初始化电机控制引脚
-    GPIO_ResetBits(GPIOE, GPIO_Pin_7 | GPIO_Pin_8 | GPIO_Pin_9 | GPIO_Pin_10); // 方向引脚置低
-    GPIO_SetBits(GPIOE, GPIO_Pin_11); // STBY使能
+    GPIO_ResetBits(Tb6612_PORT, AIN1 | AIN2 | BIN1 | BIN2); 
+    GPIO_SetBits(Tb6612_PORT, STBY);
 
-    // 2. 配置PWM引脚（PB13: TIM8_CH1, PB14: TIM8_CH2）
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
-    GPIO_InitStruct.GPIO_Pin = GPIO_Pin_13 | GPIO_Pin_14;
+    // 2. 配置PWM引脚（TIM8_CH1/CH2对应PC6/PC7）
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+    GPIO_InitStruct.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
     GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF;
     GPIO_InitStruct.GPIO_Speed = GPIO_Speed_100MHz;
     GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
     GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
-    GPIO_Init(GPIOB, &GPIO_InitStruct);
-    GPIO_PinAFConfig(GPIOB, GPIO_PinSource13, GPIO_AF_TIM8);
-    GPIO_PinAFConfig(GPIOB, GPIO_PinSource14, GPIO_AF_TIM8);
+    GPIO_Init(GPIOC, &GPIO_InitStruct); 
+    GPIO_PinAFConfig(GPIOC, GPIO_PinSource6, GPIO_AF_TIM8);
+    GPIO_PinAFConfig(GPIOC, GPIO_PinSource7, GPIO_AF_TIM8);
 
-    // 3. 配置TIM8时基（PWM频率10kHz）
+    // 3. 配置TIM8时基（核心修改：ARR调整为5000）
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM8, ENABLE);
-    TIM_TimeBaseStruct.TIM_Prescaler = 84 - 1;      // 84MHz / 84 = 1MHz
-    TIM_TimeBaseStruct.TIM_Period = 100 - 1;        // 1MHz / 100 = 10kHz
+    
+    // 参数计算说明：
+    // 目标PWM频率 = 10kHz
+    // TIM_CLK = 84MHz (APB2时钟)
+    // 计算公式：PWM频率 = TIM_CLK / [(PSC+1) * (ARR+1)]
+    // 设ARR=5000-1，则 PSC = (TIM_CLK / (PWM频率 * ARR)) - 1 
+    // PSC = 84,000,000 / (10,000 * 5000) - 1 = 1.68 → 取整为1
+    TIM_TimeBaseStruct.TIM_Prescaler = 1;           // 新预分频值
+    TIM_TimeBaseStruct.TIM_Period = 5000 - 1;       // ARR调整为5000-1
     TIM_TimeBaseStruct.TIM_CounterMode = TIM_CounterMode_Up;
     TIM_TimeBaseStruct.TIM_ClockDivision = TIM_CKD_DIV1;
     TIM_TimeBaseInit(TIM8, &TIM_TimeBaseStruct);
@@ -60,15 +60,21 @@ void motor_init(void)
     // 4. 配置PWM通道（模式1，高电平有效）
     TIM_OCInitStruct.TIM_OCMode = TIM_OCMode_PWM1;
     TIM_OCInitStruct.TIM_OutputState = TIM_OutputState_Enable;
-    TIM_OCInitStruct.TIM_Pulse = 0; // 初始占空比0%
+    TIM_OCInitStruct.TIM_Pulse = 0;                 // 初始占空比0%
     TIM_OCInitStruct.TIM_OCPolarity = TIM_OCPolarity_High;
+    
     TIM_OC1Init(TIM8, &TIM_OCInitStruct);
+    TIM_OC1PreloadConfig(TIM8, TIM_OCPreload_Enable);
+    
     TIM_OC2Init(TIM8, &TIM_OCInitStruct);
+    TIM_OC2PreloadConfig(TIM8, TIM_OCPreload_Enable);
 
-    // 5. 配置死区时间（200ns）
-    TIM_BDTRInitStruct.TIM_DeadTime = 0x18;         // 84MHz下，1周期≈11.9ns，0x18≈200ns
-    TIM_BDTRInitStruct.TIM_Break = TIM_Break_Enable;
-    TIM_BDTRInitStruct.TIM_BreakPolarity = TIM_BreakPolarity_High;
+    // 5. 调整死区时间（需重新计算）
+    // 新时钟参数：TIM_CLK = 84MHz / (1+1) = 42MHz
+    // Tdts = 1/(2*42MHz) ≈ 11.9ns
+    // 死区时间 = 200ns / 11.9ns ≈ 16.8 → 取整17 (0x11)
+    TIM_BDTRInitStruct.TIM_DeadTime = 0x11;         // 更新死区值
+    TIM_BDTRInitStruct.TIM_Break = TIM_Break_Disable;
     TIM_BDTRInitStruct.TIM_AutomaticOutput = TIM_AutomaticOutput_Enable;
     TIM_BDTRConfig(TIM8, &TIM_BDTRInitStruct);
 
@@ -76,7 +82,6 @@ void motor_init(void)
     TIM_CtrlPWMOutputs(TIM8, ENABLE);
     TIM_Cmd(TIM8, ENABLE);
 }
-
 // 控速环
 struct PID motorPWM_pid = {0.5, 0.1, 0.05, 0, 0, 0, 0};  // 设定初始 PID 参数
 
@@ -96,60 +101,72 @@ float computeStraightCorrection(void)
 
 
 
-// PWM输出函数（解决占空比计算逻辑问题）
+/**
+  * @brief  设置PWM输出值，支持正负方向控制
+  * @param  TIMx: 定时器指针（如TIM8）
+  * @param  channel: PWM通道（1-4）
+  * @param  pwmValue: PWM值（范围：-ARR ~ +ARR，负值表示反向）
+  */
 void set_PWM_output(TIM_TypeDef *TIMx, uint8_t channel, int16_t pwmValue) 
 {
-    uint32_t maxPWM = TIMx->ARR; 
-    // 限制PWM范围并处理方向
-    if (pwmValue > maxPWM) pwmValue = maxPWM;
-    if (pwmValue < -maxPWM) pwmValue = -maxPWM;
+    // 参数校验
+    if (channel < 1 || channel > 4) return;
     
-    // 将pwmValue映射到0~ARR范围（占空比计算）
-    uint32_t ccr_value = (abs(pwmValue) * maxPWM) / maxPWM;  // 修正计算逻辑
-
+    uint32_t maxPWM = TIMx->ARR;  // ARR为周期值（实际计数值=ARR+1）
+    int32_t clampedValue = pwmValue;
+    
+    // 限制PWM范围 [-maxPWM, +maxPWM]
+    clampedValue = (clampedValue > (int32_t)maxPWM) ? maxPWM : clampedValue;
+    clampedValue = (clampedValue < -(int32_t)maxPWM) ? -maxPWM : clampedValue;
+    
+    // 计算实际占空比（映射到0~maxPWM）
+    uint32_t ccr_value = (clampedValue >= 0) ? (uint32_t)clampedValue : (uint32_t)(-clampedValue);
+    
+    
+    // 更新CCR寄存器
     switch (channel) 
 		{
         case 1: TIMx->CCR1 = ccr_value; break;
         case 2: TIMx->CCR2 = ccr_value; break;
         case 3: TIMx->CCR3 = ccr_value; break;
         case 4: TIMx->CCR4 = ccr_value; break;
-        // 其他通道同理
+        default: break;
     }
 }
 
 // TB6612驱动函数
 void tb6612_out(int pwm_l, int pwm_r) 
 {
-    GPIO_SetBits(GPIOE, STBY);
+    GPIO_SetBits(Tb6612_PORT, STBY);
     
     // 左电机方向控制
-    if (pwm_l > 0) 
+    if (pwm_l < 0) 
 		{
-        GPIO_SetBits(GPIOE, AIN1);
-        GPIO_ResetBits(GPIOE, AIN2);
+        GPIO_SetBits(Tb6612_PORT, AIN1);
+        GPIO_ResetBits(Tb6612_PORT, AIN2);
     } 
 		else 
 		{
-        GPIO_SetBits(GPIOE, AIN2);
-        GPIO_ResetBits(GPIOE, AIN1);
+        GPIO_SetBits(Tb6612_PORT, AIN2);
+        GPIO_ResetBits(Tb6612_PORT, AIN1);
         pwm_l = -pwm_l; // 保持正值用于占空比计算
     }
     
     // 右电机方向控制
-    if (pwm_r > 0) 
+    if (pwm_r < 0) 
 		{  
-        GPIO_SetBits(GPIOE, BIN1);
-        GPIO_ResetBits(GPIOE, BIN2);
+        GPIO_SetBits(Tb6612_PORT, BIN1);
+        GPIO_ResetBits(Tb6612_PORT, BIN2);
     } 
 		else 
 		{
-        GPIO_SetBits(GPIOE, BIN2);
-        GPIO_ResetBits(GPIOE, BIN1);
+        GPIO_SetBits(Tb6612_PORT, BIN2);
+        GPIO_ResetBits(Tb6612_PORT, BIN1);
         pwm_r = -pwm_r;
     }
     
-//    set_PWM_output(TIM8, 1, pwm_l);
-//    set_PWM_output(TIM8, 2, pwm_r);
+    set_PWM_output(TIM8, 1, pwm_l);
+    set_PWM_output(TIM8, 2, pwm_r);
 }
 
 void updateMotorControl(float targetSpeed,float currentSpeed) //wheel_speed_left

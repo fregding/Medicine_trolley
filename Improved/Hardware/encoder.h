@@ -2,6 +2,10 @@
 #define __ENCODER_H
 
 #include "sys.h"
+#include "stm32f4xx_syscfg.h"  
+
+#define ENCODER_TIM2_PERIOD   0xFFFFFFFF  // 32位计数器最大值
+#define ENCODER_TIM5_PERIOD   0xFFFFFFFF
 
 // **编码器 & 速度计算参数**
 #define PULSE_PER_TURN 1024    // MG513X 编码器每圈脉冲数

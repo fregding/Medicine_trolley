@@ -9,7 +9,7 @@
 #define HOLD_THRESHOLD 300     
 #define INTERVAL_THRESHOLD 150 
 
-#define GPIO_Key_PORT GPIOC
+#define GPIO_Key_PORT GPIOA
 #define GPIO_Key_PIN_1_PIN GPIO_Pin_6
 #define GPIO_Key_PIN_2_PIN GPIO_Pin_7
 #define GPIO_Key_PIN_3_PIN GPIO_Pin_8

@@ -4,6 +4,8 @@
 #include "sys.h"
 #include "PID.h"
 
+#define Tb6612_PORT GPIOE
+#define Tb6612_RCC RCC_AHB1Periph_GPIOE
 #define AIN1 GPIO_Pin_7
 #define AIN2 GPIO_Pin_8
 #define BIN1 GPIO_Pin_9
