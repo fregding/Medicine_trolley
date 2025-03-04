@@ -2,45 +2,26 @@
 #include "stm32f4xx.h"
 #include "TimerX.h"
 #include "encoder.h"
+#include "Menu_TFT.h"
 
-//-----------------------------------------------------------------------------
-// SysTick 定时器模块
-//-----------------------------------------------------------------------------
-volatile uint32_t sysTickCounter = 0;
-
-void SysTick_Init(uint32_t ms) 
+// 在main.c或独立模块中初始化TIM2为1ms计数器
+void TIM2_Init(void) 
 {
-    /* 确保SystemCoreClock已正确初始化 */
-    if(SystemCoreClock == 0) 
-		{
-        SystemCoreClockUpdate();
-    }
-    
-    uint32_t load = (SystemCoreClock / 1000) * ms - 1;
-    
-    /* 参数有效性检查 */
-    if(load > 0xFFFFFF) 
-		{
-        while(1); // 错误处理
-    }
-    
-    SysTick->LOAD  = load;
-    SysTick->VAL   = 0;
-    SysTick->CTRL  = SysTick_CTRL_CLKSOURCE_Msk |
-                     SysTick_CTRL_TICKINT_Msk   |
-                     SysTick_CTRL_ENABLE_Msk;
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
+    TIM_TimeBaseInitTypeDef TIM_BaseStruct = {
+        .TIM_Prescaler = 84 - 1,          // 84MHz/84 = 1MHz
+        .TIM_Period = 1000 - 1,           // 1MHz/1000 = 1kHz (1ms)
+        .TIM_ClockDivision = TIM_CKD_DIV1,
+        .TIM_CounterMode = TIM_CounterMode_Up
+    };
+    TIM_TimeBaseInit(TIM2, &TIM_BaseStruct);
+    TIM_Cmd(TIM2, ENABLE);
 }
 
-void SysTick_Handler(void) 
-{
-    sysTickCounter++;
+// 获取当前时间戳（单位：ms）
+uint32_t getCurrentTime(void) {
+    return TIM2->CNT;  // 直接读取计数器值
 }
-
-uint32_t millis(void) 
-{
-    return sysTickCounter;
-}
-
 //-----------------------------------------------------------------------------
 // TIM7 定时器模块（10ms周期）
 //-----------------------------------------------------------------------------
@@ -80,8 +61,8 @@ void TIM7_Init(uint16_t time_ms)
     TIM_Cmd(TIM7, ENABLE);
 
     NVIC_InitStructure.NVIC_IRQChannel = TIM7_IRQn;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x01;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x02;
+		NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x03; // 最低抢占优先级
+		NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x03;
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStructure);
 }
@@ -91,7 +72,6 @@ void TIM7_IRQHandler(void)
     if(TIM_GetITStatus(TIM7, TIM_IT_Update) != RESET) 
 		{
         TIM_ClearITPendingBit(TIM7, TIM_IT_Update);
-        
         encoder_left = (float)Read_Encoder(TIM3);
         encoder_right = (float)Read_Encoder(TIM4);
         
@@ -146,7 +126,10 @@ void TIM6_DAC_IRQHandler(void)
 {
     if (TIM_GetITStatus(TIM6, TIM_IT_Update) != RESET) 
 		{
-				key_handler();
+        key_handler();
+			
+				refresh_Flag = 1;
+			
         TIM_ClearITPendingBit(TIM6, TIM_IT_Update);  // 必须清除中断标志
     }
 }

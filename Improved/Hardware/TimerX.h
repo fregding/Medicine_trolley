@@ -29,13 +29,14 @@
 
 //	基本定时器（TIM6/TIM7） 无外部引脚，仅内部使用
 
-
-void SysTick_Init(uint32_t ms);
+void TIM2_Init(void);
+// 获取当前时间戳（单位：ms）
+uint32_t getCurrentTime(void);
 
 void TIM7_Init(uint16_t ms);
 
 void TIM6_Init(uint16_t time_ms);
 
-uint32_t millis(void);
+
 				    
 #endif

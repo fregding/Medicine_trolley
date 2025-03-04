@@ -10,7 +10,7 @@
 #include "encoder.h"
 
 #define Title_offset 1
-#define Data_offset 8
+#define Data_offset 10
 #define Item_offset 1
 
 extern uint8_t Current_keyState;

@@ -184,6 +184,7 @@ void key_action(void)
                 break;
 						case 1:
 								Turn_to_next_page();
+								refresh_Flag = 1;
 								break;
             }
         }

@@ -23,14 +23,11 @@ int main(void)
     LCD_Init();
     LCD_Fill(0,0,LCD_W,LCD_H,WHITE);
 
-    //定时器初始化
 
-    TIM6_Init(20);     // 20ms按键扫描（优先级1.3）
-    TIM7_Init(10);     // 10ms编码器采样（优先级1.2）
 
     //编码器硬件初始化
-//    ENCODER_1_INIT();  // 初始化TIM3编码器接口
-//    ENCODER_2_INIT();  // 初始化TIM4编码器接口
+    ENCODER_1_INIT();  // 初始化TIM3编码器接口
+    ENCODER_2_INIT();  // 初始化TIM4编码器接口
 
 
     Menu_page_init();
@@ -39,15 +36,19 @@ int main(void)
 		
 		
 		//电机初始化
-//		motor_init();
-//		tb6612_out(1000,1000);
+		motor_init();
+		tb6612_out(1000,1000);
 
-
+    //定时器初始化
+		TIM2_Init();
+    TIM6_Init(20);     // 20ms按键扫描（优先级1.3）
+    TIM7_Init(10);     // 10ms编码器采样（优先级1.2）
     delay_ms(500);     // 防止外设初始化不稳定
 
 
     while(1)
     {
+			
         Menu_refresh();
         delay_ms(100); // 主循环周期建议与定时器周期匹配
     }

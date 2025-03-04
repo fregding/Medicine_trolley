@@ -10,14 +10,13 @@
 
 uint8_t Current_keyState = 0;  // 0 -> 浮空 1 -> 单击 2 -> 双击 3 -> 长按
 uint8_t Active_Flag = 0;
-uint8_t Cursor_position = 2;
+uint8_t Cursor_position = 3;
 uint8_t refresh_Flag = 1;
 uint8_t Page_number = 0;  // 当前页面编号，0 表示第一页
 
 
-static float num1 = 1.0, num2 = 0.0, num3 = 0.0;
-static float angle = 30;
-static float* adress = &num1;
+static float num1 = 1.0, num2 = 0.0, num3 = 0.0, num4 = 0.0, num5 = 0.0, num6 = 0.0,num7 = 0.0,num8 = 0.0;
+float* adress = &num1;
 static float STEP = 10;
 float BIN = 0;
 
@@ -25,18 +24,18 @@ float BIN = 0;
 MenuPage Pages[3];  // 定义三个页面
 
 page_items Page1_Items = {
-    {"En_L", "En_R", "P", "I", "D"},  // 项目名称
-    {&encoder_left, &encoder_right, &num1, &num2, &num3}  // 项目地址
+    {"speed_L", "speed_R", "P", "I", "D"},  // 项目名称
+    {&wheel_speed_left, &wheel_speed_right, &num3, &num4, &num5}  // 项目地址
 };
 
 page_items Page2_Items = {
     {"Speed", "Angle", "Position", "Time", "Error"},
-    {&num1, &num2, &num3, &angle, &BIN}
+    {&num6, &num7, &num8, &num1, &num1}
 };
 
 page_items Page3_Items = {
     {"Current", "Voltage", "Power", "Temp", "Status"},
-    {&num1, &num2, &num3, &angle, &BIN}
+    {&num1, &num2, &num3, &num1, &num1}
 };
 
 
@@ -60,18 +59,17 @@ void Pages_init(void)
     Pages[2].itemData = Page3_Items.itemData;
     
     // 页面的其他属性初始化
-		Cursor_position = 2;
-		refresh_Flag = 1;
+
     Menu_show_current_page();
 }
 
 void Menu_show_current_page(void)
 {
-//    LCD_Fill(0,0,LCD_W,LCD_H,WHITE);// 每次刷新页面，清空屏幕
+    LCD_Fill(0,0,LCD_W,LCD_H,WHITE);// 每次刷新页面，清空屏幕
 
     Menu_show_String(Title_offset, 0, Pages[Page_number].TitleName, 0);
     Menu_show_String(Item_offset, 2, "Step =", 0);
-    Menu_show_Float(Item_offset + 7, 2, *Pages[Page_number].Current_Step, 0);
+    Menu_show_Float(Item_offset + 9, 2, *Pages[Page_number].Current_Step, 0);
 
     for (int i = 0; i < 5; i++) {
         if (Pages[Page_number].itemNames[0][i][0] != '\0') {  // 判断项目是否有效
@@ -93,16 +91,16 @@ void judge_active(void)
 		else 
 		{
         Menu_show_String(0, Cursor_position,">", 0);
-		//	Menu_show_String(Item_offset,Cursor_position, Pages[Page_number].itemNames[0][Cursor_position], 0);
     }
 
     // 动态决定当前页面的项目地址
     switch (Cursor_position) {
-        case 2: adress = Pages[Page_number].itemData[0]; break;
-        case 3: adress = Pages[Page_number].itemData[1]; break;
-        case 4: adress = Pages[Page_number].itemData[2]; break;
-        case 5: adress = Pages[Page_number].itemData[3]; break;
-        case 6: adress = Pages[Page_number].itemData[4]; break;
+				case 2: adress = &STEP;break;
+        case 3: adress = Pages[Page_number].itemData[0]; break;
+        case 4: adress = Pages[Page_number].itemData[1]; break;
+        case 5: adress = Pages[Page_number].itemData[2]; break;
+        case 6: adress = Pages[Page_number].itemData[3]; break;
+        case 7: adress = Pages[Page_number].itemData[4]; break;
     }
 }
 

@@ -17,10 +17,10 @@
 
 #define LCD_SCL_PIN             GPIO_Pin_4       		 
 #define LCD_SDA_PIN             GPIO_Pin_5      		 
-#define LCD_DC_PIN              GPIO_Pin_7   
+#define LCD_DC_PIN              GPIO_Pin_10  
 #define LCD_CS_PIN              GPIO_Pin_8
 #define LCD_BLK_PIN             GPIO_Pin_9
-#define LCD_RES_PIN             GPIO_Pin_6
+#define LCD_RES_PIN             GPIO_Pin_11
 #define LCD_PORT            GPIOB                  // LED1 GPIO¶Ë¿Ú     
 #define LCD_CLK             RCC_AHB1Periph_GPIOB	 // LED1 GPIO¶Ë¿ÚÊ±ÖÓ
 
