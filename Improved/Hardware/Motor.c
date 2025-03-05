@@ -7,8 +7,6 @@
 float Real_leftPWM = 0;
 float Real_rightPWM = 0;
 // 高级定时器（支持死区控制等）：TIM1、TIM8
-// 通道 1：GPIOB_PIN_13（TIM8_CH1）
-// 通道 2：GPIOB_PIN_14（TIM8_CH2）
 
 
 void motor_init(void) 
