@@ -15,14 +15,15 @@
 #define LCD_H 128
 #endif
 
-#define LCD_SCL_PIN             GPIO_Pin_4       		 
-#define LCD_SDA_PIN             GPIO_Pin_5      		 
-#define LCD_DC_PIN              GPIO_Pin_10  
-#define LCD_CS_PIN              GPIO_Pin_8
-#define LCD_BLK_PIN             GPIO_Pin_9
-#define LCD_RES_PIN             GPIO_Pin_11
-#define LCD_PORT            GPIOB                  // LED1 GPIO端口     
-#define LCD_CLK             RCC_AHB1Periph_GPIOB	 // LED1 GPIO端口时钟
+#define LCD_SCL_PIN             GPIO_Pin_0       		 
+#define LCD_SDA_PIN             GPIO_Pin_2  
+#define LCD_RES_PIN             GPIO_Pin_4
+#define LCD_DC_PIN              GPIO_Pin_6 
+#define LCD_CS_PIN              GPIO_Pin_1
+#define LCD_BLK_PIN             GPIO_Pin_3
+
+#define LCD_PORT            GPIOD                 // LED1 GPIO端口     
+#define LCD_CLK             RCC_AHB1Periph_GPIOD	 // LED1 GPIO端口时钟
 
 //-----------------LCD端口定义---------------- 
 

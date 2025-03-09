@@ -22,15 +22,22 @@
 #define MAX_PWM 5000            // PWM 最大值
 #define MIN_PWM 0              // PWM 最小值
 
+#define ENCODER_TIM_PERIOD (u16)(65535)  
+
+extern float circle_count_left;//全局变量-圈数
+extern float circle_count_right;//全局变量-圈数
 extern float encoder_left;
 extern float encoder_right;
 extern float wheel_speed_left, wheel_speed_right; // 轮速 (m/s)
 
-void ENCODER_1_INIT(void);
-void ENCODER_2_INIT(void);
-	
-
-int16_t Read_Encoder(TIM_TypeDef *TIMx) ;
+//void ENCODER_1_INIT(void);
+//void ENCODER_2_INIT(void);
+//int16_t Read_Encoder(TIM_TypeDef *TIMx) ;
 void computeSpeed(int16_t LeftCNT, int16_t RightCNT);
+
+void Encoder_Init_TIM3(void);// PA6 PA7
+void Encoder_Init_TIM4(void);// PB6 PB7
+int Read_Encoder(u8 TIMX);
+
 
 #endif

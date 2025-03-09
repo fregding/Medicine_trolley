@@ -138,7 +138,7 @@ void tb6612_out(int pwm_l, int pwm_r)
     GPIO_SetBits(Tb6612_PORT, STBY);
     
     // 左电机方向控制
-    if (pwm_l < 0) 
+    if (pwm_l > 0) 
 		{
         GPIO_SetBits(Tb6612_PORT, AIN1);
         GPIO_ResetBits(Tb6612_PORT, AIN2);
@@ -151,7 +151,7 @@ void tb6612_out(int pwm_l, int pwm_r)
     }
     
     // 右电机方向控制
-    if (pwm_r < 0) 
+    if (pwm_r > 0) 
 		{  
         GPIO_SetBits(Tb6612_PORT, BIN1);
         GPIO_ResetBits(Tb6612_PORT, BIN2);

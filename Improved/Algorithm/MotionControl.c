@@ -1,6 +1,4 @@
 #include "Motioncontrol.h" 
-#include "inv_mpu.h"
-#include "inv_mpu_dmp_motion_driver.h"
 #include <stddef.h>
 #include "encoder.h"
 #include "TimerX.h"

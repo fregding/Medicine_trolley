@@ -8,9 +8,11 @@
 #define Tb6612_RCC RCC_AHB1Periph_GPIOE
 #define AIN1 GPIO_Pin_7
 #define AIN2 GPIO_Pin_8
-#define BIN1 GPIO_Pin_9
-#define BIN2 GPIO_Pin_10
-#define STBY GPIO_Pin_11
+#define BIN1 GPIO_Pin_12
+#define BIN2 GPIO_Pin_14
+#define STBY GPIO_Pin_10
+// PWMA -> PC6  TIM8_ch1
+// PWMB -> PC7  TIM8_ch2
 
 #define basePWM 2000
 

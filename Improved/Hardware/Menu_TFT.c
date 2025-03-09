@@ -14,23 +14,26 @@ uint8_t Cursor_position = 3;
 uint8_t refresh_Flag = 1;
 uint8_t Page_number = 0;  // 当前页面编号，0 表示第一页
 
-
-static float num1 = 1.0, num2 = 0.0, num3 = 0.0, num4 = 0.0, num5 = 0.0, num6 = 0.0,num7 = 0.0,num8 = 0.0;
+static float num1 = 1.0, num2 = 0.0, num3 = 0.0, num4 = 1145.1, num5 = -110.0;
 float* adress = &num1;
 static float STEP = 10;
 float BIN = 0;
 
+// 变量集
+float tims = 0;
+float init_F = 1;
+float Pitch,Roll,Yaw;
 
 MenuPage Pages[3];  // 定义三个页面
 
 page_items Page1_Items = {
-    {"speed_L", "speed_R", "P", "I", "D"},  // 项目名称
-    {&wheel_speed_left, &wheel_speed_right, &num3, &num4, &num5}  // 项目地址
+    {"speed_L", "speed_R", "Tims", "I", "D"},  // 项目名称
+    {&encoder_left, &encoder_right, &tims, &num4, &num5}  // 项目地址
 };
 
 page_items Page2_Items = {
-    {"Speed", "Angle", "Position", "Time", "Error"},
-    {&num6, &num7, &num8, &num1, &num1}
+    {"init_F", "Pitch", "Roll", "Yaw", "Error"},
+    {&init_F, &Pitch, &Roll, &Yaw, &num1}
 };
 
 page_items Page3_Items = {
@@ -69,7 +72,6 @@ void Menu_show_current_page(void)
 
     Menu_show_String(Title_offset, 0, Pages[Page_number].TitleName, 0);
     Menu_show_String(Item_offset, 2, "Step =", 0);
-    Menu_show_Float(Item_offset + 9, 2, *Pages[Page_number].Current_Step, 0);
 
     for (int i = 0; i < 5; i++) {
         if (Pages[Page_number].itemNames[0][i][0] != '\0') {  // 判断项目是否有效
@@ -78,6 +80,20 @@ void Menu_show_current_page(void)
 				
         }
     }
+}
+
+void Menu_show_current_Value(void)
+{
+	Menu_show_Float(Item_offset + 8, 2, *Pages[Page_number].Current_Step, 0);
+	for (int i = 0; i < 5; i++) 
+	{
+			if (Pages[Page_number].itemNames[0][i][0] != '\0') 
+			{  // 判断项目是否有效
+					Menu_show_String(Data_offset, 3 + i, "        ", 0);
+					Menu_show_Float(Data_offset, 3 + i, *Pages[Page_number].itemData[i], 0);
+			
+			}
+	}
 }
 
 void judge_active(void)
@@ -161,7 +177,7 @@ void item_data_increase(void)
     }
     if (Active_Flag == 1 && Cursor_position == 2)
     {
-        if (STEP < 100) // 防止 Current_Step 超过限制
+        if (STEP < 1000) // 防止 Current_Step 超过限制
             STEP*= 10;
         refresh_Flag = 1;
     }
@@ -182,7 +198,7 @@ void item_data_decrease(void)
     }
     if (Active_Flag == 1 && Cursor_position == 2)
     {
-        if (STEP >(float) 0.01) // 防止过度缩小
+        if (STEP >=(float) 0.01) // 防止过度缩小
             STEP /=(float) 10;
         refresh_Flag = 1;
     }
@@ -202,6 +218,7 @@ void Menu_refresh(void)
         Menu_show_cursor();
         refresh_Flag = 0;
     }
+		 Menu_show_current_Value();
 }
 
 void Menu_page_init(void)

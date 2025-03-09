@@ -16,19 +16,17 @@
 
 //   操作页面
 #include "Key.h"
-#include "OLED.h"
 #include "lcd_init.h"
 #include "lcd.h"
 #include "Menu_TFT.h"
 
 //   算法部分
 #include "PID.h"
-#include "MotionControl.h"
+#include "mpu6050.h"
 #include "inv_mpu.h"
-#include "inv_mpu_dmp_motion_driver.h" 
+#include "inv_mpu_dmp_motion_driver.h"
 
 //   移动控制
-#include "mpu6050.h"
 #include "Motor.h"
 #include "encoder.h"
 #include "InfraredTracking.h"

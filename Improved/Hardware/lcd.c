@@ -430,25 +430,53 @@ void LCD_ShowIntNum(u16 x,u16 y,u16 num,u8 len,u16 fc,u16 bc,u8 sizey)
                 sizey 字号
       返回值：  无
 ******************************************************************************/
-void LCD_ShowFloatNum1(u16 x,u16 y,float num,u8 len,u16 fc,u16 bc,u8 sizey)
-{         	
-	u8 t,temp,sizex;
-	u16 num1;
-	sizex=sizey/2;
-	num1=num*100;
-	for(t=0;t<len;t++)
-	{
-		temp=(num1/mypow(10,len-t-1))%10;
-		if(t==(len-2))
-		{
-			LCD_ShowChar(x+(len-2)*sizex,y,'.',fc,bc,sizey,0);
-			t++;
-			len+=1;
-		}
-	 	LCD_ShowChar(x+t*sizex,y,temp+48,fc,bc,sizey,0);
-	}
-}
+//void LCD_ShowFloatNum1(u16 x,u16 y,float num,u8 len,u16 fc,u16 bc,u8 sizey)
+//{         	
+//	u8 t,temp,sizex;
+//	u32 num1;
+//	sizex=sizey/2;
+//	num1=num*100;
+//	for(t=0;t<len;t++)
+//	{
+//		temp=(num1/mypow(10,len-t-1))%10;
+//		if(t==(len-2))
+//		{
+//			LCD_ShowChar(x+(len-2)*sizex,y,'.',fc,bc,sizey,0);
+//			t++;
+//			len+=1;
+//		}
+//	 	LCD_ShowChar(x+t*sizex,y,temp+48,fc,bc,sizey,0);
+//	}
+//}
 
+void LCD_ShowFloatNum1(u16 x, u16 y, float num, u8 len, u16 fc, u16 bc, u8 sizey)
+{         	
+    u8 t, temp, sizex;
+    u32 num1;
+    sizex = sizey / 2;
+
+    // 处理负数
+    if (num < 0) 
+		{
+        LCD_ShowChar(x, y, '-', fc, bc, sizey, 0); // 显示负号
+        x += sizex; // 调整x坐标，为符号腾出位置
+        num = -num; // 转换为正数处理
+    }
+
+    num1 = num * 100; // 将浮点数转换为整数处理（两位小数）
+
+    for (t = 0; t < len; t++)
+    {
+        temp = (num1 / mypow(10, len - t - 1)) % 10;
+        if (t == (len - 2)) // 在小数点位置插入点
+        {
+            LCD_ShowChar(x + (len - 2) * sizex, y, '.', fc, bc, sizey, 0);
+            t++;
+            len += 1; // 增加总长度以容纳小数点
+        }
+        LCD_ShowChar(x + t * sizex, y, temp + 48, fc, bc, sizey, 0); // 显示数字字符
+    }
+}
 
 /******************************************************************************
       函数说明：显示图片

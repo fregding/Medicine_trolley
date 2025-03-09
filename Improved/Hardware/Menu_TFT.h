@@ -10,7 +10,7 @@
 #include "encoder.h"
 
 #define Title_offset 1
-#define Data_offset 10
+#define Data_offset 9
 #define Item_offset 1
 
 extern uint8_t Current_keyState;
@@ -22,8 +22,10 @@ extern uint8_t Page_number ;
 
 ////////////////  变量  /////////
 extern float nu1,num2,num3;
-extern float angle;
+extern float init_F;
 extern float BIN;
+extern float tims;
+extern float Pitch,Roll,Yaw;//俯仰角默认跟中值一样，翻滚角，偏航角
 
 // 定义包含多个页面的结构体
 typedef struct {
@@ -52,6 +54,8 @@ void item_data_decrease(void);
 void Menu_refresh(void);
 
 void Menu_show_current_page(void);
+
+void Menu_show_current_Value(void);
 
 void Menu_show_cursor(void);
 

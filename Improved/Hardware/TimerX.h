@@ -1,7 +1,7 @@
 #ifndef __TIMERX_H
 #define __TIMERX_H
 #include "sys.h"
-#include "Key.h"
+#include "headfile.h"
 
 //	高级定时器（TIM1/TIM8）
 //	TIM1	

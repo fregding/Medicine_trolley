@@ -223,16 +223,16 @@ u32 usmart_get_runtime(void)
 }  
 //下面这两个函数,非USMART函数,放到这里,仅仅方便移植. 
 //定时器4中断服务程序	 
-void TIM4_IRQHandler(void)
-{ 		    		  			    
-	if(TIM_GetITStatus(TIM4,TIM_IT_Update)==SET)//溢出中断
-	{
-		usmart_dev.scan();	//执行usmart扫描	
-		TIM_SetCounter(TIM4,0);		//清空定时器的CNT
-		TIM_SetAutoreload(TIM4,100);//恢复原来的设置		    				   				     	    	
-	}				   
-	TIM_ClearITPendingBit(TIM4,TIM_IT_Update);  //清除中断标志位    
-}
+//void TIM4_IRQHandler(void)
+//{ 		    		  			    
+//	if(TIM_GetITStatus(TIM4,TIM_IT_Update)==SET)//溢出中断
+//	{
+//		usmart_dev.scan();	//执行usmart扫描	
+//		TIM_SetCounter(TIM4,0);		//清空定时器的CNT
+//		TIM_SetAutoreload(TIM4,100);//恢复原来的设置		    				   				     	    	
+//	}				   
+//	TIM_ClearITPendingBit(TIM4,TIM_IT_Update);  //清除中断标志位    
+//}
 //使能定时器4,使能中断.
 void Timer4_Init(u16 arr,u16 psc)
 {
